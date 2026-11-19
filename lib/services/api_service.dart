@@ -15,6 +15,7 @@ class ApiService {
         'offset': offset,
         if (search != null && search.isNotEmpty) 'title_contains': search,
       });
+
       return ArticleResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw _handleError(e);
@@ -22,9 +23,17 @@ class ApiService {
   }
 
   String _handleError(DioException e) {
-    if (e.type == DioExceptionType.connectionTimeout) return "Connection Timeout";
-    if (e.type == DioExceptionType.receiveTimeout) return "Receive Timeout";
-    if (e.type == DioExceptionType.badResponse) return "Backend Error: ${e.response?.statusCode}";
-    return "Something went wrong. Please check your internet.";
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.sendTimeout ||
+        e.type == DioExceptionType.receiveTimeout) {
+      return "Connection timed out. Please check your internet connection.";
+    }
+    if (e.type == DioExceptionType.connectionError) {
+      return "No internet connection. Please check your network and try again.";
+    }
+    if (e.type == DioExceptionType.badResponse) {
+      return "Server error (${e.response?.statusCode}). Please try again later.";
+    }
+    return "No internet connection. Please check your network and try again.";
   }
 }

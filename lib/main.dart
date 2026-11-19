@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'viewmodels/article_viewmodel.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'cubits/article_cubit.dart';
 import 'views/screens/list_screen.dart';
 
 void main() {
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => ArticleViewModel()),
-      ],
+    BlocProvider(
+      create: (_) => ArticleCubit()..fetchArticles(),
       child: const MyApp(),
     ),
   );

@@ -31,6 +31,7 @@ class _ListScreenState extends State<ListScreen> {
   }
 
   void _onScroll() {
+    if (!_scrollController.hasClients) return;
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       context.read<ArticleCubit>().loadMore();
@@ -138,7 +139,13 @@ class _ListScreenState extends State<ListScreen> {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final isTablet = constraints.maxWidth >= _kTabletBreakpoint;
-                  return BlocBuilder<ArticleCubit, ArticleState>(
+                  return BlocConsumer<ArticleCubit, ArticleState>(
+                    listener: (context, state) {
+                      if (state.status == ArticleStatus.loaded) {
+                        WidgetsBinding.instance
+                            .addPostFrameCallback((_) => _onScroll());
+                      }
+                    },
                     builder: (context, state) {
                       return _buildBody(context, state, isTablet, constraints.maxWidth);
                     },
@@ -163,6 +170,8 @@ class _ListScreenState extends State<ListScreen> {
     }
 
     if (state.status == ArticleStatus.error && state.articles.isEmpty) {
+      final isNoInternet =
+          state.errorMessage?.toLowerCase().contains('no internet') ?? false;
       return Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -175,16 +184,16 @@ class _ListScreenState extends State<ListScreen> {
                   color: Colors.blue.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.wifi_off_rounded,
+                child: Icon(
+                  isNoInternet ? Icons.wifi_off_rounded : Icons.error_outline_rounded,
                   size: 56,
-                  color: Color(0xFF1E88E5),
+                  color: const Color(0xFF1E88E5),
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
-                'No Internet Connection',
-                style: TextStyle(
+              Text(
+                isNoInternet ? 'No Internet Connection' : 'Something Went Wrong',
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,

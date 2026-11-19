@@ -35,7 +35,7 @@ The app follows an **MVVM (Model – View – ViewModel)** layering, with a `Rep
 
 ## Technical Details
 
-- **Networking**: `Dio` with a centralized API client (`ApiService`) and typed error handling (timeouts, connection errors, bad responses).
+- **Networking**: `Dio` with a centralized API client (`ApiService`) and typed error handling (timeouts, connection errors, bad responses, bad certificates), with user-facing messages distinguishing "no internet" (`SocketException`) from other connection failures.
 - **Models**: Null-safe, with `fromJson` factory constructors (`Article`, `ArticleResponse`).
 - **Image Loading**: `cached_network_image` for caching, with `placeholder` and `errorWidget` builders on every image.
 - **Responsiveness**: `LayoutBuilder` in `ListScreen` switches between a single-column `ListView` on phones (`width < 600`) and a `GridView` (2–3 columns, based on width) on tablets.
@@ -59,7 +59,7 @@ lib/
 
 1.  **Clone the repository**:
     ```bash
-    git clone <repository-url>
+    git clone <https://github.com/pujasri25/News_app.git>
     ```
 2.  **Install dependencies**:
     ```bash
@@ -70,6 +70,8 @@ lib/
     flutter run
     ```
 
+> **Note (Android)**: The app requires the `INTERNET` permission, already declared in `android/app/src/main/AndroidManifest.xml`. No other setup (API keys, `.env` files, etc.) is needed since the Spaceflight News API is public.
+
 ## Packages Used
 
 - `dio`: Networking.
@@ -77,3 +79,12 @@ lib/
 - `cached_network_image`: Image handling.
 - `url_launcher`: Opening external links.
 - `intl`: Date formatting.
+
+## Assumptions
+
+- The [Spaceflight News API v4](https://api.spaceflightnewsapi.net/v4) is public and requires no API key or authentication.
+- Search filters only by article title (`title_contains` query param) — no full-text.
+- Pagination uses a fixed page size of 10 articles per request; "has more" is derived from the API's `next` field rather than a client-side count.
+- No local persistence/offline cache for article data itself — only images are cached on-device (`cached_network_image`). A fresh app launch always re-fetches from the network.
+- The tablet/phone layout split uses a single width breakpoint (600 logical pixels) rather than platform or orientation checks.
+- No automated test suite is included beyond the default `test/widget_test.dart` scaffold.

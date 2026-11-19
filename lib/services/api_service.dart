@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import '../models/article.dart';
 
@@ -29,11 +31,17 @@ class ApiService {
       return "Connection timed out. Please check your internet connection.";
     }
     if (e.type == DioExceptionType.connectionError) {
-      return "No internet connection. Please check your network and try again.";
+      if (e.error is SocketException) {
+        return "No internet connection. Please check your network and try again.";
+      }
+      return "Couldn't connect: ${e.message ?? e.error ?? 'unknown error'}";
     }
     if (e.type == DioExceptionType.badResponse) {
       return "Server error (${e.response?.statusCode}). Please try again later.";
     }
-    return "No internet connection. Please check your network and try again.";
+    if (e.type == DioExceptionType.badCertificate) {
+      return "Secure connection failed (invalid certificate).";
+    }
+    return "Something went wrong: ${e.message ?? e.error ?? 'unknown error'}";
   }
 }
